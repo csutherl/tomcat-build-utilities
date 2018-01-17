@@ -1,0 +1,17 @@
+#/bin/bash
+# Script to extract an RPM in place
+
+# move file to /tmp
+mv $1 /tmp
+mkdir $1
+cd $1
+
+rpm2cpio /tmp/$1 | cpio -id
+
+if [ $? -ne 0 ]; then
+    echo "Error opening RPM"
+    exit 1
+fi
+
+# clean up
+rm -f /tmp/$1

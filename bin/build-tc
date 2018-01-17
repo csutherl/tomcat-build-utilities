@@ -1,0 +1,31 @@
+#!/bin/bash
+# check for the build.properties.default file to ensure that the dir is correct
+if ! [ -f build.properties.default ]; then
+    echo "The build.properties.default doesn't exist. Are you in a tomcat base dir?"
+    exit 1
+fi
+
+# get major verions to determine which options to use
+TC_MAJOR=$(egrep "version.major=[0-9]+" build.properties.default | egrep -o "[0-9]+")
+
+if [ $TC_MAJOR -eq 6 ]; then
+    # update the catalina.sh so that it starts...
+    sed -i 's@CLASSPATH="$CLASSPATH""$CATALINA_HOME"/bin/bootstrap.jar@CLASSPATH="$CLASSPATH""$CATALINA_BASE"/bin/tomcat-juli.jar:"$CATALINA_HOME"/bin/bootstrap.jar@g' bin/catalina.sh
+
+    export ANT_HOME=~/opt/apache-ant-1.9.6
+    export JAVA_HOME=~/opt/jdk1.5.0_22
+    #export JAVA_HOME=/usr/java/jdk1.7.0_79
+
+    # build tomcat
+    cmd="ant -Dbase.path=${HOME}/unit-tests/tomcat/repo -Djava.7.home=${JAVA_HOME} -Dno.build.dbcp=true download deploy $@"
+
+elif [ $TC_MAJOR -eq 7 ]; then
+    cmd="ant -Dexecute.validate=false -Djava.7.home=/usr/java/jdk1.7.0_79 -Dbase.path=${HOME}/unit-tests/tomcat/repo -Dno.build.dbcp=true download-compile dist-prepare deploy $@"
+else
+# for now tomcat 8+ use the same targets
+#elif [ $TC_MAJOR -eq 8 ]; then
+    cmd="ant -Djava.7.home=/usr/java/jdk1.7.0_79 -Dbase.path=${HOME}/unit-tests/tomcat/repo -Dno.build.dbcp=true -Dexecute.validate=false download-compile dist-prepare deploy compile-webapp-examples $@"
+fi
+
+echo $cmd
+exec $cmd

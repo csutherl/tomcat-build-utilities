@@ -1,0 +1,8 @@
+#!/bin/bash
+for deployment in $*
+do
+	cd $deployment
+	rj *.jar *.war *.rar *.sar
+	cd ..
+	rj $deployment
+done

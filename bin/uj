@@ -1,0 +1,46 @@
+#!/bin/bash
+
+TMPDIR=tmpdir
+TMPFILE=tmpfile
+
+for jar in $*
+do
+
+	if [ -f $jar ]
+	then
+
+		ext=`echo $jar | awk -F . '{print $NF}'`
+		echo "ext=$ext"
+
+		case "$ext" in
+		tar.gz|tgz)
+			mkdir $TMPDIR && tar xfvz $jar -C $TMPDIR && rm $jar && mv $TMPDIR $jar
+		;;
+		gz)
+			if [ `echo $jar | grep ".tar.gz$"` ]
+			then
+				mkdir $TMPDIR && tar xfvz $jar -C $TMPDIR && rm $jar && mv $TMPDIR $jar
+			else
+				mkdir $TMPDIR && gunzip -c $jar > $TMPDIR/$jar && rm $jar && mv $TMPDIR $jar
+			fi
+		;;
+		bz2)
+			mkdir $TMPDIR && tar xfvj $jar -C $TMPDIR && rm $jar && mv $TMPDIR $jar
+		;;
+ 	 7z|zipx)
+			mkdir $TMPDIR && 7za e -o${TMPDIR} $jar && rm $jar && mv $TMPDIR $jar
+ 	 ;;
+		*)
+			unzip -d $TMPDIR $jar > /dev/null && rm $jar && mv $TMPDIR $jar
+		;;
+		esac	
+
+	elif [ -d $jar ]
+	then
+		echo "$jar is a directory"
+
+	else
+		echo "$jar nothing to do"
+	fi
+
+done

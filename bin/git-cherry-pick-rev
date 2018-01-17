@@ -1,0 +1,12 @@
+#!/bin/bash
+# Script to use git-find-rev and cherry-pick the commit that matches the rev.
+
+if [ -z $1 ]; then
+    echo "Usage $(basename $0): svn-rev"
+    exit
+else
+    rev=$1
+fi
+
+commit=$(git find-rev $1 | grep ^commit | awk '{print $2}')
+git cherry-pick $commit

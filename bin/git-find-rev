@@ -1,0 +1,15 @@
+#!/bin/bash
+# Script to find svn rev from in git. git-svn find-rev doesn't work if you're not on the remote.
+
+if [ -z $1 ]; then
+    echo "Usage $(basename $0): svn-rev"
+    exit
+else
+    rev=$1
+fi
+
+# get the apache github upstream remote name
+remote=$(git remote -v | grep apache/tomcat | head -n1 | awk '{print $1}')
+
+git fetch $remote
+git log $remote/trunk --grep "trunk@$rev" --stat

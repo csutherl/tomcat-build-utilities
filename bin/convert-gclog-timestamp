@@ -1,0 +1,18 @@
+#!/bin/bash
+# This script will convert the timestamps (created by using -XX:+PrintGCTimeStamp) in a GC log to a human readable format, "starttime + $delta mins"
+# Example:
+# 
+# 0.083: Total time for which application threads were stopped: 0.0000608 seconds, Stopping threads took: 0.0000120 seconds
+#
+# would be:
+#
+# "starttime + 0.00138333 mins" Total time for which application threads were stopped: 0.0000608 seconds, Stopping threads took: 0.0000120 seconds
+
+
+if [ -z $1 ]; then
+    echo "Please provide a file name"
+    exit 1
+fi
+
+cat $1 | awk '{$1 = "\"starttime + " $1/60 " mins\""; print}' > $1.converted
+echo "Converted as $1.converted in `pwd`"

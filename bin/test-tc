@@ -1,0 +1,37 @@
+#!/bin/bash
+# Script to test tomcat's various connectors individually
+
+if [ -z $1 ]; then
+    echo "Please provide apr, nio, nio2, or bio for testing"
+    exit 1
+else
+    connector=$1
+    shift
+fi
+
+if [[ $connector == "apr" ]]; then
+    tests="-Dexecute.test.bio=false -Dexecute.test.nio=false -Dexecute.test.nio2=false"
+    tests="$tests -Dtest.apr.loc=/path/to/apr"
+elif [[ $connector == "bio" ]]; then
+    tests="-Dexecute.test.apr=false -Dexecute.test.nio=false -Dexecute.test.nio2=false"
+elif [[ $connector == "nio" ]]; then
+    tests="-Dexecute.test.apr=false -Dexecute.test.bio=false -Dexecute.test.nio2=false"
+elif [[ $connector == "nio2" ]]; then
+    tests="-Dexecute.test.apr=false -Dexecute.test.bio=false -Dexecute.test.nio=false"
+fi
+
+if ! [ -z $JAVA_HOME ]; then
+    java7home="-Djava.7.home=$JAVA_HOME "
+fi
+
+tomcat=$(basename $(pwd))
+if ! [[ $tomcat =~ "tomcat" ]]; then
+    echo "$tomcat is not a tomcat directory."
+    exit 1
+fi
+
+cmd="ant ${java7home}-Dno.build.dbcp=true -Dbase.path=${HOME}/unit-tests/tomcat/repo $tests test $@"
+echo $cmd
+exec $cmd
+
+# for testing methods, use -Dtest.entry= and -Dtest.entry.methods=

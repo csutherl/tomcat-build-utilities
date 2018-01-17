@@ -1,0 +1,44 @@
+#!/bin/bash
+if [ $# -lt 2 ]; then
+        echo 'Usage: searchJars "java/lang/String" *.jar'
+        exit 0
+fi
+
+grepCommand="grep "
+
+while getopts "c" optionName; do
+        case "$optionName" in
+                c)
+                        countOnly=1
+                        grepCommand="$grepCommand -c $OPTARG"
+                ;;
+        esac
+done
+# remove options, remaining arguemnts are in $*
+shift $(($OPTIND - 1))
+
+
+class=$1
+shift 1
+
+for file in `ls $*`
+do
+	if [ -f $file ]
+	then
+		found=`jar -tf $file | $grepCommand $class`
+		if [ "$found" != ""  ]
+		then
+			if [ $countOnly ]
+			then
+				if [ $found -gt 0 ]
+				then
+					echo "$file : $found"
+				fi
+			else
+				echo -e "\n$file\n=================="
+				echo "$found" | sed 's|\(.*\)\.class|\1|g' | sed 's|/|.|g'
+			fi
+		fi
+	fi
+done
+

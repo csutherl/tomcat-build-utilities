@@ -1,0 +1,21 @@
+#!/bin/bash
+# Script to build tcnative
+#
+# Script assumes that the svn repo and it's deps have been build already and that java8 is installed
+WORKSPACE=$(pwd)
+#WORKSPACE=/svn/tomcat-native/trunk
+
+if ! [ -d tomcat-target ]; then
+    mkdir tomcat-target
+fi
+
+echo "Workspace: $WORKSPACE"
+
+echo "--with-apr=${WORKSPACE}/deps/src/apr"
+
+# configure
+sh buildconf --with-apr=${WORKSPACE}/deps/src/apr
+./configure --with-apr=${WORKSPACE}/deps/src/apr --with-ssl=${WORKSPACE}/deps/src/openssl --with-java-home=/usr/lib/jvm/java-1.8.0-openjdk --prefix=$(pwd)/tomcat-target
+
+# install
+make && make install

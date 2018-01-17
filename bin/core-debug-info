@@ -1,0 +1,3 @@
+#!/bin/bash
+# yum --enablerepo='*-debug*' install $(eu-unstrip -n --core=./coredump | sed -e 's#^[^ ]* \(..\)\([^@ ]*\).*$#/usr/lib/debug/.build-id/\1/\2#p' -e 's/$/.debug/')
+echo $(eu-unstrip -n --core=./coredump | sed -e 's#^[^ ]* \(..\)\([^@ ]*\).*$#/usr/lib/debug/.build-id/\1/\2#p' -e 's/$/.debug/')

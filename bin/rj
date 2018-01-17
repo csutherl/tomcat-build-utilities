@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+
+foreach (@ARGV)
+{
+	#$dir = shift;
+	$dir = $_;
+	#chop $dir; # I think this was for / but that is not always going to be there
+	if ( -d $dir )
+	{
+		$dir =~ s|^(.*)(/+)$|$1|g;
+		system("mv $dir tmpdir");
+		chdir "tmpdir";
+		system("zip -Dr ../$dir * > /dev/null");
+		#system("zip -Dr ../$dir * .*");
+		#system("zip -r ../$dir *");
+		chdir "..";
+		system("rm -rf tmpdir");
+	}
+	else
+	{
+		print "$dir is not a dir\n";
+	}	
+}
+
+
+#
+# $dir = shift;
+# chop $dir;
+# system("mv $dir tmpdir");
+# chdir "tmpdir";
+# system("zip -Dr ../$dir *");
+# chdir "..";
+# system("rm -rf tmpdir");
