@@ -1,0 +1,10 @@
+#!/bin/bash
+# Script to merge a revision from trunk, I don't do it often enough to remember :)
+
+if [ -z $1 ]; then
+    echo "Please provide a revision to merge from tomcat/trunk"
+    exit 1
+fi
+
+echo "Merging r$1 from tomcat/trunk..."
+svn merge -c "$1" ^/tomcat/trunk
