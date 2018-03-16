@@ -1,0 +1,38 @@
+#!/bin/bash
+# Script to apply patches in RPM specfile order
+#
+# Run from tomcat dist-git (from `fedpkg co tomcat`) directory
+# or with expanded SRPM
+
+specfile=$(ls tomcat*.spec)
+if [ ! -f $specfile ]; then
+    echo "Specfile not found. Aborting..."
+    exit 1
+else
+    echo "Applying patches to $specfile..."
+fi
+# Cleanup old dirs
+if [ -d apache-tomcat-*-src ]; then
+    rm -rf apache-tomcat-*-src
+fi
+
+# Get sources if they don't exist
+if ! [ -f apache-tomcat-*.tar.gz ]; then
+    fedpkg sources
+fi
+
+# Extract sources
+tar xvf apache-tomcat-*.tar.gz > /dev/null
+
+# Set some variables from the spec (major and minor version)
+name=$(echo "$specfile" | cut -d. -f1)
+major=$(egrep 'major_version [0-9]+' $specfile | egrep -o [0-9]+)
+minor=$(egrep 'minor_version [0-9]+' $specfile | egrep -o [0-9]+)
+
+# cd into apache-tomcat-*-src and apply patches
+pushd apache-tomcat*-src/
+    for p in $(egrep Patch[0-9]+ ../${specfile} | awk '{print $2}' | sed -e "s/%{name}/${name}/g" | sed -e "s/%{major_version}/${major}/g" | sed -e "s/%{minor_version}/${minor}/g"); do 
+        echo "Applying $p..."
+        patch -p0 < ../$p;
+    done
+popd

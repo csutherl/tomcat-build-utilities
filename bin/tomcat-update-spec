@@ -1,0 +1,47 @@
+#!/bin/bash
+# Quick script to update the tomcat.spec with a new tomcat version for the
+# Fedora tomcat package
+
+if [ $(ls apache-tomcat*.gz | wc -l) -gt 1 ]; then
+    echo "Please remove all tomcat tarballs except the one you want to update and retry."
+    exit 1
+fi
+
+# Grab tarball filename and extract version
+tarball=$(ls apache-tomcat*.gz)
+version=$(echo "$tarball" | egrep -o '([0-9]+).([0-9]+).([0-9]+)')
+echo "Updating spec to $version..."
+
+# Grab version parts and update spec
+major_version=$(echo "$version" | cut -d. -f1)
+sed -i -E "s/major_version [0-9]+/major_version $major_version/" tomcat.spec
+minor_version=$(echo "$version" | cut -d. -f2)
+sed -i -E "s/minor_version [0-9]+/minor_version $minor_version/" tomcat.spec
+micro_version=$(echo "$version" | cut -d. -f3)
+sed -i -E "s/micro_version [0-9]+/micro_version $micro_version/" tomcat.spec
+
+# Reset Release back to 1
+sed -i -E 's/[0-9]+%\{\?dist\}/1%\{\?dist\}/' tomcat.spec
+
+# Add changlog entry
+clentry="* $(date +"%a %b %d %Y") $(git config --get user.name) <$(git config --get user.email)> - 1:$major_version.$minor_version.$micro_version-1"
+clentry="$clentry\n- Update to $major_version.$minor_version.$micro_version\n"
+sed -i "s/%changelog/%changelog\n$clentry/" tomcat.spec
+
+# Check to see if there were changes, if none print a note and exit
+if [ $(git diff | wc -l) -eq 0 ]; then
+    echo "There was no update to the spec file. Exiting..."
+    exit 1
+fi
+
+# If we're here, then there were changes and we need to update sources too
+fedpkg new-sources $tarball
+if [ $? -ne 0 ]; then
+    echo "fedpkg new-sources failed! Aborting..."
+    exit 1
+fi
+
+# Finally, add and commit with a message, then print the last log message
+git add tomcat.spec
+git commit -m "Update to $version"
+git log -n1
