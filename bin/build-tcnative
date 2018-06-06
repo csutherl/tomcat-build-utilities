@@ -5,13 +5,28 @@
 WORKSPACE=$(pwd)
 #WORKSPACE=/svn/tomcat-native/trunk
 
-if ! [ -d tomcat-target ]; then
-    mkdir tomcat-target
-fi
-
 echo "Workspace: $WORKSPACE"
 
-echo "--with-apr=${WORKSPACE}/deps/src/apr"
+if [ ! -d ${WORKSPACE}/deps/src/apr ]; then
+    echo "APR dependency is missing from '${WORKSPACE}/deps/src/apr'"
+    echo "Execute ./download_deps.sh and compile APR before building tomcat-native"
+    exit 1
+fi
+echo "Using APR from: ${WORKSPACE}/deps/src/apr"
+if [ ! -d ${WORKSPACE}/deps/src/openssl ]; then
+    echo "OpenSSL dependency is missing from '${WORKSPACE}/deps/src/openssl'"
+    echo "Execute ./download_deps.sh before building tomcat-native"
+    exit 1
+fi
+echo "Using OpenSSL from: ${WORKSPACE}/deps/src/openssl"
+
+# Check for apr-1-config
+if [ ! -f ${WORKSPACE}/deps/src/apr/apr-1-config ]; then
+    echo "${WORKSPACE}/deps/src/apr/apr-1-config does not exist! You need to compile APR before building tomcat-native."
+    exit 1
+fi
+
+cd native
 
 # configure
 sh buildconf --with-apr=${WORKSPACE}/deps/src/apr
